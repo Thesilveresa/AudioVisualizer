@@ -44,13 +44,13 @@ public:
     void            setup();
     void            audioInit();
     void            fileInit();
-    void            openFile();
+ //   void            openFile();
     void            openFile(GLint which);
-    void            loadMovieFile(qtime::MovieGl &mMovie, const fs::path &moviePath, gl::Texture &mFrameTexture);
+ //   void            loadMovieFile(qtime::MovieGl &mMovie, const fs::path &moviePath, gl::Texture &mFrameTexture); // enable this function to use video players
 
     void            update();
 	void            draw();
-    void            drawMovies();
+// void            drawMovies();
     
 #if defined(CINDER_MAC)
     void            drawFft();
@@ -67,18 +67,22 @@ private:
     CameraPersp         mCam;
 	Arcball             mArcball;
     Quatf               mRotationQuat;
-    vector<fs::path>    Images;
+    vector<fs::path>    Images, Images2, Images3;
 	Surface32f          mImage1, mImage2;
 	gl::VboMesh         mVboMesh1, mVboMesh2;
     Input               mInput;
     PcmBuffer32fRef     mPcmBuf_Input;
     shared_ptr<float>   mFftDataRef;
     gl::Texture			mTexture1, mTexture2, mFrameTexture1, mFrameTexture2, mFrameTexture3;
-	qtime::MovieGl		mMovie1, mMovie2, mMovie3;
+	//qtime::MovieGl	mMovie1, mMovie2, mMovie3;
     
-    GLboolean           LOOPS1, LOOPS2, LINES, MESH1, MESH2, SPIN, VMODE1, VMODE2, FFT1, FFT2, MOVIES_ON1, MOVIES_ON2, MOVIES_ON3, MODE4, quad1, quad2, BLEEP;
-    GLfloat             spinX, spinY, spinZ, tiltX, tiltY, tiltZ, angVeloc, mFlash, mAlpha1, mAlpha2, mAlpha3, vAlpha, Yscale1, Yscale2,bandHeight, incr_dec, step1, step2, radius1, radius2, base;
-    GLint               mImagePos, mImageSize;
+    GLboolean           LOOPS1, LOOPS2, LINES, MESH1, MESH2, SPIN, VMODE1, VMODE2, FFT1, FFT2,
+                        // MOVIES_ON1, MOVIES_ON2, MOVIES_ON3,
+                        MODE4, quad1, quad2, DOME;
+    GLfloat             spinX, spinY, spinZ, tiltX, tiltY, tiltZ, angVeloc, mFlash, mAlpha1, mAlpha2,
+                        mAlpha3, vAlpha, Yscale1, Yscale2,bandHeight, incr_dec, step1, step2, radius1,
+                        radius2, base;
+    GLint               mImagePos, mImageSize, mImageSize2, mImageSize3;
     uint16_t            nBands;
     uint32_t            mMax, mWidth1, mWidth2, mHeight1, mHeight2;
 };  
@@ -86,8 +90,9 @@ private:
 void AudioVisualizerApp::prepareSettings(Settings *s)
 {
     s->setWindowSize(1240, 760);
+ //   s->setWindowSize(2400, 1920);
     s->setFrameRate(60.0);
-    s->setFullScreen(false);
+    s->setFullScreen(true);
 }
 
 void AudioVisualizerApp::setup()
@@ -96,17 +101,18 @@ void AudioVisualizerApp::setup()
 	gl::enableDepthWrite();    
     gl::enableAlphaBlending();
     
-    LOOPS1 = LOOPS2 = SPIN = MESH1 = MESH2 = quad1 = quad2 = LINES = BLEEP = true;
-    VMODE1 = VMODE2 = FFT1 = FFT2 = MOVIES_ON1 = MOVIES_ON2 = MOVIES_ON3 = MODE4 = false;
+    LOOPS1 = LOOPS2 = SPIN = MESH1 = MESH2 = quad1 = LINES = true;
+    VMODE1 = VMODE2 = FFT1 = FFT2 = // MOVIES_ON1 = MOVIES_ON2 = MOVIES_ON3 =
+             MODE4 = quad2 = DOME = false;
     spinX = spinZ = tiltX = tiltZ = 0.0f;
     spinY = tiltY = 1.0f;
     step1 = step2 = 0.02f;
     radius1 = radius2 = 15.85f;
     vAlpha = mAlpha1 = mAlpha2 = mAlpha3 = angVeloc = mFlash = 0.5f;
-    mImagePos = mWidth1 = mWidth2 = mWidth2 = mHeight1 = mHeight2 = mImageSize = 1;
+    mImagePos = mWidth1 = mWidth2 = mWidth2 = mHeight1 = mHeight2 = mImageSize = mImageSize2 = mImageSize3 = 1;
     
-    mArcball.setQuat(Quatf(Vec3f(0.0f, 0.977576f, -1.0f), 3.12f));
-	//mArcball.setQuat(Quatf(Vec3f(0.0f, 0.1f, 0.0f), 3.68f));
+    //mArcball.setQuat(Quatf(Vec3f(0.0f, 0.977576f, -1.0f), 3.12f));
+    mArcball.setQuat(Quatf(Vec3f(0.0f, 0.1f, 0.0f), 3.68f));
     hideCursor();
    // mScreenSyphon.setName("Screen");
     mScreenSyphon.setName("Arena");
@@ -118,7 +124,7 @@ void AudioVisualizerApp::setup()
 void AudioVisualizerApp::audioInit() 
 {   
     incr_dec = 5.0f; //set to 10+ for mic input, else 0.03 for line in *change Yscale1
-    Yscale1 = 50.0f; //set to 150-200 for mic in, else 0.03 for line in *change incr_dec
+    Yscale1 = 70.0f; //set to 150-200 for mic in, else 0.03 for line in *change incr_dec
     Yscale2 = - Yscale1;
     bandHeight = 500.0f;
     nBands = 1024;
@@ -127,29 +133,46 @@ void AudioVisualizerApp::audioInit()
     mInput.start();
 }
 
+// Replace file paths for your image directories
+
 void AudioVisualizerApp::fileInit()
 {
-    fs::path p("/Users/architechnoiste/Desktop/cinder/samples/AudioVisualizer/xcode/images");
-    for(fs::directory_iterator it(p); it != fs::directory_iterator(); ++it) 
+    fs::path p("/Users/architechnoiste/Desktop/cinder/samples/AudioVisualizer/xcode/color");
+        for(fs::directory_iterator it(p); it != fs::directory_iterator(); ++it)
          if(!is_directory(*it)) Images.push_back(*it); 
     if(Images.empty()) return; 
     mImageSize = Images.size() - 1;
-    openFile();
-        
-    fs::path mp("/Users/architechnoiste/Desktop/cinder/samples/AudioVisualizer/xcode/video/1.mov");
+    
+    fs::path p2("/Users/architechnoiste/Desktop/cinder/samples/AudioVisualizer/xcode/pale");
+    for(fs::directory_iterator it(p2); it != fs::directory_iterator(); ++it)
+        if(!is_directory(*it)) Images2.push_back(*it);
+    if(Images2.empty()) return;
+    mImageSize2 = Images2.size() - 1;
+    
+    fs::path p3("/Users/architechnoiste/Desktop/cinder/samples/AudioVisualizer/xcode/white");
+    for(fs::directory_iterator it(p3); it != fs::directory_iterator(); ++it)
+         if(!is_directory(*it)) Images3.push_back(*it);
+    if(Images3.empty()) return;
+    mImageSize3 = Images3.size() - 1;
+    
+    openFile(1);
+  
+   /* Enable this section to use video players
+    fs::path mp("/Users/architechnoiste/Desktop/cinder/samples/AudioVisualizer/xcode/vid/1.mov");
     if( ! mp.empty() )
         loadMovieFile( mMovie1, mp, mFrameTexture1);
         
-    fs::path mp2("/Users/architechnoiste/Desktop/cinder/samples/AudioVisualizer/xcode/video/1.mov");
+    fs::path mp2("/Users/architechnoiste/Desktop/cinder/samples/AudioVisualizer/xcode/vid/2.mov");
     if( ! mp2.empty() )
         loadMovieFile( mMovie2, mp, mFrameTexture2);   
         
-    fs::path mp3("/Users/architechnoiste/Desktop/cinder/samples/AudioVisualizer/xcode/video/1.mov");
+    fs::path mp3("/Users/architechnoiste/Desktop/cinder/samples/AudioVisualizer/xcode/vid/3.mov");
     if( ! mp3.empty() )
         loadMovieFile( mMovie3, mp, mFrameTexture3);   
+    */
 }
 
-void AudioVisualizerApp::openFile()
+/*void AudioVisualizerApp::openFile()
 {
     if(Images.empty()) return;
     int pos = Rand::randInt() % mImageSize;
@@ -182,55 +205,118 @@ void AudioVisualizerApp::openFile()
         if(LOOPS1) { mVboMesh2 = gl::VboMesh(mWidth2 * mHeight2, 0, layout2, GL_TRIANGLE_STRIP); }
         else       { mVboMesh2 = gl::VboMesh(mWidth2 * mHeight2, 0, layout2, GL_QUAD_STRIP); }
     }
-}
+}*/
 
 void AudioVisualizerApp::openFile(GLint which)
 {
-    if(Images.empty()) return;
-    int pos;
-    ++mImagePos;
+    gl::VboMesh::Layout layout1, layout2;
+    
     switch(which) {
-        case 1: {
-            pos = (mImagePos) % mImageSize;
-            if(pos==0) ++pos;
-            mImage1 = loadImage(Images.at(pos));
-            mWidth1 = mImage1.getWidth();
-            mHeight1 = mImage1.getHeight();
-            gl::VboMesh::Layout layout1;
-            layout1.setDynamicColorsRGBA();
-            layout1.setDynamicPositions();
-            if(LINES) {
-                if(LOOPS1) { mVboMesh1 = gl::VboMesh(mWidth1 * mHeight1, 0, layout1, GL_POINTS); }
-                else       { mVboMesh1 = gl::VboMesh(mWidth1 * mHeight1, 0, layout1, GL_LINE_LOOP); }
-            }
-            else {
-                if(LOOPS1) { mVboMesh1 = gl::VboMesh(mWidth1 * mHeight1, 0, layout1, GL_TRIANGLE_STRIP); }
-                else       { mVboMesh1 = gl::VboMesh(mWidth1 * mHeight1, 0, layout1, GL_QUAD_STRIP); }
-            }
-        }break;
-        case 2: {
-            ++mImagePos;
-            pos = (mImagePos+1) % mImageSize;
-            if(pos==0) ++pos;
-            mImage2 = loadImage(Images.at(pos));
-            mWidth2 = mImage2.getWidth();
-            mHeight2 = mImage2.getHeight();
-            gl::VboMesh::Layout layout2;
-            layout2.setDynamicColorsRGBA();
-            layout2.setDynamicPositions();
-            if(LINES) {
-                if(LOOPS1) { mVboMesh2 = gl::VboMesh(mWidth2 * mHeight2, 0, layout2, GL_POINTS); }
-                else       { mVboMesh2 = gl::VboMesh(mWidth2 * mHeight2, 0, layout2, GL_LINE_LOOP); }
-            }
-            else {
-                if(LOOPS1) { mVboMesh2 = gl::VboMesh(mWidth2 * mHeight2, 0, layout2, GL_TRIANGLE_STRIP); }
-                else       { mVboMesh2 = gl::VboMesh(mWidth2 * mHeight2, 0, layout2, GL_QUAD_STRIP); }
-            }
-        }break;
-        default:break;
+    case 1: {
+    if(Images.empty()) return;
+    int pos = Rand::randInt() % mImageSize;
+    if(pos==0) ++pos;
+    mImage1 = loadImage(Images.at(pos));
+    mWidth1 = mImage1.getWidth();
+    mHeight1 = mImage1.getHeight();
+    
+    layout1.setDynamicColorsRGBA();
+    layout1.setDynamicPositions();
+    if(LINES) {
+        if(LOOPS1) { mVboMesh1 = gl::VboMesh(mWidth1 * mHeight1, 0, layout1, GL_POINTS); }
+        else       { mVboMesh1 = gl::VboMesh(mWidth1 * mHeight1, 0, layout1, GL_LINE_LOOP); }
     }
+    else {
+        if(LOOPS1) { mVboMesh1 = gl::VboMesh(mWidth1 * mHeight1, 0, layout1, GL_TRIANGLE_STRIP); }
+        else       { mVboMesh1 = gl::VboMesh(mWidth1 * mHeight1, 0, layout1, GL_QUAD_STRIP); }
+    }
+    mImage2 = loadImage(Images.at(pos));
+    mWidth2 = mImage2.getWidth();
+    mHeight2 = mImage2.getHeight();
+    
+    layout2.setDynamicColorsRGBA();
+    layout2.setDynamicPositions();
+    if(LINES) {
+        if(LOOPS1) { mVboMesh2 = gl::VboMesh(mWidth2 * mHeight2, 0, layout2, GL_POINTS); }
+        else       { mVboMesh2 = gl::VboMesh(mWidth2 * mHeight2, 0, layout2, GL_LINE_LOOP); }
+    }
+    else {
+        if(LOOPS1) { mVboMesh2 = gl::VboMesh(mWidth2 * mHeight2, 0, layout2, GL_TRIANGLE_STRIP); }
+        else       { mVboMesh2 = gl::VboMesh(mWidth2 * mHeight2, 0, layout2, GL_QUAD_STRIP); }
+    }}
+    break;
+    
+    case 2: {
+    if(Images2.empty()) return;
+    int pos2 = Rand::randInt() % mImageSize2;
+    if(pos2==0) ++pos2;
+    mImage1 = loadImage(Images2.at(pos2));
+    mWidth1 = mImage1.getWidth();
+    mHeight1 = mImage1.getHeight();
+    
+    layout1.setDynamicColorsRGBA();
+    layout1.setDynamicPositions();
+    if(LINES) {
+        if(LOOPS1) { mVboMesh1 = gl::VboMesh(mWidth1 * mHeight1, 0, layout1, GL_POINTS); }
+        else       { mVboMesh1 = gl::VboMesh(mWidth1 * mHeight1, 0, layout1, GL_LINE_LOOP); }
+    }
+    else {
+        if(LOOPS1) { mVboMesh1 = gl::VboMesh(mWidth1 * mHeight1, 0, layout1, GL_TRIANGLE_STRIP); }
+        else       { mVboMesh1 = gl::VboMesh(mWidth1 * mHeight1, 0, layout1, GL_QUAD_STRIP); }
+    }
+    mImage2 = loadImage(Images2.at(pos2));
+    mWidth2 = mImage2.getWidth();
+    mHeight2 = mImage2.getHeight();
+    
+    layout2.setDynamicColorsRGBA();
+    layout2.setDynamicPositions();
+    if(LINES) {
+        if(LOOPS1) { mVboMesh2 = gl::VboMesh(mWidth2 * mHeight2, 0, layout2, GL_POINTS); }
+        else       { mVboMesh2 = gl::VboMesh(mWidth2 * mHeight2, 0, layout2, GL_LINE_LOOP); }
+    }
+    else {
+        if(LOOPS1) { mVboMesh2 = gl::VboMesh(mWidth2 * mHeight2, 0, layout2, GL_TRIANGLE_STRIP); }
+        else       { mVboMesh2 = gl::VboMesh(mWidth2 * mHeight2, 0, layout2, GL_QUAD_STRIP); }
+    }}
+    break;
+    
+    case 3: {
+    if(Images3.empty()) return;
+    int pos3 = Rand::randInt() % mImageSize3;
+    if(pos3==0) ++pos3;
+    mImage1 = loadImage(Images3.at(pos3));
+    mWidth1 = mImage1.getWidth();
+    mHeight1 = mImage1.getHeight();
+    
+    layout1.setDynamicColorsRGBA();
+    layout1.setDynamicPositions();
+    if(LINES) {
+        if(LOOPS1) { mVboMesh1 = gl::VboMesh(mWidth1 * mHeight1, 0, layout1, GL_POINTS); }
+        else       { mVboMesh1 = gl::VboMesh(mWidth1 * mHeight1, 0, layout1, GL_LINE_LOOP); }
+    }
+    else {
+        if(LOOPS1) { mVboMesh1 = gl::VboMesh(mWidth1 * mHeight1, 0, layout1, GL_TRIANGLE_STRIP); }
+        else       { mVboMesh1 = gl::VboMesh(mWidth1 * mHeight1, 0, layout1, GL_QUAD_STRIP); }
+    }
+    mImage2 = loadImage(Images3.at(pos3));
+    mWidth2 = mImage2.getWidth();
+    mHeight2 = mImage2.getHeight();
+   
+    layout2.setDynamicColorsRGBA();
+    layout2.setDynamicPositions();
+    if(LINES) {
+        if(LOOPS1) { mVboMesh2 = gl::VboMesh(mWidth2 * mHeight2, 0, layout2, GL_POINTS); }
+        else       { mVboMesh2 = gl::VboMesh(mWidth2 * mHeight2, 0, layout2, GL_LINE_LOOP); }
+    }
+    else {
+        if(LOOPS1) { mVboMesh2 = gl::VboMesh(mWidth2 * mHeight2, 0, layout2, GL_TRIANGLE_STRIP); }
+        else       { mVboMesh2 = gl::VboMesh(mWidth2 * mHeight2, 0, layout2, GL_QUAD_STRIP); }
+    }}
+    break;
+    default:break;}
 }
 
+/* Enable for video players
 void AudioVisualizerApp::loadMovieFile(qtime::MovieGl &mMovie, const fs::path &moviePath, gl::Texture &mFrameTexture)
 {
     try {
@@ -246,6 +332,7 @@ void AudioVisualizerApp::loadMovieFile(qtime::MovieGl &mMovie, const fs::path &m
     } 
     mFrameTexture.reset();
 }
+*/
 
 void AudioVisualizerApp::update() {
     if(SPIN) { mRotationQuat.set(Vec3f(spinX, spinY, spinZ), getElapsedSeconds() * angVeloc); }
@@ -258,9 +345,9 @@ void AudioVisualizerApp::update() {
 	mFftDataRef = calculateFft(mPcmBuf_Input->getChannelData(CHANNEL_FRONT_LEFT), nBands);
 #endif
 
-    if(mMovie1) mFrameTexture1 = mMovie1.getTexture();
-    if(mMovie2) mFrameTexture2 = mMovie2.getTexture();
-    if(mMovie3) mFrameTexture3 = mMovie3.getTexture();
+ //   if(mMovie1) mFrameTexture1 = mMovie1.getTexture();
+ //   if(mMovie2) mFrameTexture2 = mMovie2.getTexture();
+ //   if(mMovie3) mFrameTexture3 = mMovie3.getTexture();
 }
 
 void AudioVisualizerApp::draw()
@@ -300,7 +387,7 @@ void AudioVisualizerApp::draw()
             gl::popMatrices();
         }
         gl::color(1.0f, 1.0f, 1.0f, vAlpha);
-        drawMovies();
+  //      drawMovies();
         
     gl::popModelView();
     mScreenSyphon.publishScreen();
@@ -353,7 +440,7 @@ void AudioVisualizerApp::drawFft()
                     glEnd();
                 glPopMatrix();
             }
-            if(BLEEP) {
+            if(DOME) {
               GLfloat angle=0.0f;
                 while(pixelIter.line() && angle <= pi) {
                     while(pixelIter.pixel()) {
@@ -392,7 +479,7 @@ void AudioVisualizerApp::drawFft()
         gl::VboMesh::VertexIter vertexIter(mVboMesh2);  
         for(GLint x=0; x<nBands; ++x) {
             GLfloat y = fftBuf[x] / nBands * bandHeight;
-            if(BLEEP) {
+            if(DOME) {
                GLfloat angle = 0.0f;
                while(pixelIter.line() && angle <= pi) {
                     while(pixelIter.pixel()) {
@@ -468,61 +555,84 @@ void AudioVisualizerApp::keyDown(KeyEvent event)
         case 'C': showCursor(); break;
         case 'F': setFullScreen(!isFullScreen()); break;
         case 'Q': exit(0); break;
-                 
+           
+     // Background color controls
         case 'v': VMODE2=false; VMODE1=true; break;
         case 'V': VMODE1=false; VMODE2=true; break;
         case 'n': VMODE1 = VMODE2 = false; break;
 
+     // FFT bars
         case 'i': FFT1 ? FFT1=false : FFT1=true; break;
-        case 'I': FFT2 ? FFT2=false : FFT2=true; break;
+        case 'k': FFT2 ? FFT2=false : FFT2=true; break;
         case '/': mAlpha3<=0.0f ? mAlpha3=0.0f : mAlpha3-=0.05f; break;
         case '?': mAlpha3+=0.05f; break;
         
-        case 'b': BLEEP ? BLEEP=false : BLEEP=true; break;
+     // Map to dome on/off
+        case 'b': DOME ? DOME=false : DOME=true; break;
     
+     // Meshes on/off
         case '1': MESH1  ?  MESH1=false :  MESH1=true; break;
         case '2': MESH2  ?  MESH2=false :  MESH2=true; break;
+        
+     // Mesh primitive controls
         case '3': LOOPS1 ? LOOPS1=false : LOOPS1=true; break;
         case '4': LOOPS2 ? LOOPS2=false : LOOPS2=true; break;
         case '*': LINES ? LINES=false : LINES=true; break;
-        
+       
+     /* Video players
         case '!': MOVIES_ON1 ? MOVIES_ON1=false : MOVIES_ON1=true; break;
         case '@': MOVIES_ON2 ? MOVIES_ON2=false : MOVIES_ON2=true; break;
         case '#': MOVIES_ON3 ? MOVIES_ON3=false : MOVIES_ON3=true; break;
         case '$': { MOVIES_ON1=true; MOVIES_ON2=true; MOVIES_ON3=true; } break;
         case '%': { MOVIES_ON1=false; MOVIES_ON2=false; MOVIES_ON3=false; } break;
+     */
+       
+    //  Dome map controls
         case 'w': base<=0.0f ? base=0.0f : base-=0.1f; break;
         case 'W': base+=0.1f; break;
 
+    // Invert heightfield polarities
         case '6': Yscale1 =   abs(Yscale1);  break;
         case '^': Yscale1 = -(abs(Yscale1)); break;
         case '7': Yscale2 =   abs(Yscale2);  break;
         case '&': Yscale2 = -(abs(Yscale2)); break;
+        
+    // Mute
         case '{': Yscale1=0.0f; break;
-        case '}': Yscale2=0.0f; break; 
+        case '}': Yscale2=0.0f; break;
+        
+    // Control rate of change in amplitudes
         case 'u': incr_dec<=0.0f ? incr_dec=0.0f : incr_dec-=10.0f; break;
         case 'U': incr_dec+=10.0f; break;
+        
+    // Vary amplitudes individually
         case 'Z': Yscale1+=incr_dec; break;
         case 'z': Yscale1-=incr_dec; break;
         case 'X': Yscale2+=incr_dec; break;
         case 'x': Yscale2-=incr_dec; break;
+        
+    //  Vary amplitudes together
         case 'M': {Yscale1+=incr_dec; Yscale2-=incr_dec;} break;
         case 'm': {Yscale1-=incr_dec; Yscale2+=incr_dec;} break;
-        
-        case '8': openFile(1); break;
-        case '9': openFile(2); break;
-        case '0': openFile();  break;
+
+    //  Load new image (mesh)
+        case '8': openFile(1); break; // Colorful images
+        case '9': openFile(2); break; // Pale images
+        case '0': openFile(3); break; // Black & white images
     
-        case '|': mArcball.setQuat(Quatf(Vec3f(0.0f, 0.977576f, -1.0f), 3.12f)); break;
+    //  Perspective presets
+        case 'B': mArcball.setQuat(Quatf(Vec3f(0.0f, 0.977576f, -1.0f), 3.12f)); break;
         case ']': mArcball.setQuat(Quatf(Vec3f(0.0f, 0.0f, 0.1f), 3.68f)); break;
         case '[': mArcball.setQuat(Quatf(Vec3f(0.0f, 0.1f, 0.0f), 3.68f)); break;
         case 'p': mArcball.setQuat(Quatf(Vec3f(0.0f, 0.0f, -0.1f), 3.68f)); break;
         case 'P': mArcball.setQuat(Quatf(Vec3f(-0.1f, -0.1f, -0.1f), 3.68f)); break;
         
+    //  Angle/spin controls
         case '5': SPIN   ?   SPIN=false :   SPIN=true; break;  
         case '<': case ',': angVeloc<=0.0f ? angVeloc=0.0f : angVeloc-=0.1f; break;
         case '>': case '.': angVeloc+=0.1f; break;
-            
+       
+    //  Mesh opacity controls
         case 'g': mAlpha1 = 0.15f;    break;
         case 'G': mAlpha2 = 0.15f;    break;
 		case 'l': mAlpha1 = 0.3333f;  break;
@@ -539,7 +649,7 @@ void AudioVisualizerApp::keyDown(KeyEvent event)
         case '=': mAlpha1+=0.05f; mAlpha2=mAlpha1; break;
         
         case 'j': quad1 ? quad1=false : quad1=true; break;
-        case 'k': quad2 ? quad2=false : quad2=true; break;
+       // case 'k': quad2 ? quad2=false : quad2=true; break;
         
         case 't': radius1+=0.75f; radius2+=0.75f; break;
         case 'T': radius1-=0.75f; radius2-=0.75f; break;
@@ -572,12 +682,13 @@ void AudioVisualizerApp::resize( ResizeEvent event )
 	gl::setMatrices(mCam);
 }
 
+/* Draw video players
 void AudioVisualizerApp::drawMovies() {
     if(mFrameTexture1) {
         if(MOVIES_ON1) {
             Rectf centeredRect = Rectf( mFrameTexture1.getBounds() ).getCenteredFit( getWindowBounds(), true );
             gl::pushMatrices();
-                gl::draw( mFrameTexture1, centeredRect  );
+                cinder::gl::draw( mFrameTexture1, centeredRect  );
                 glRotatef(-90.0f, 0.0f, 1.0f, 0.0f);
                 gl::draw( mFrameTexture1, centeredRect  );
                 glRotatef(-90.0f, 1.0f, 0.0f, 0.0f);
@@ -678,5 +789,6 @@ void AudioVisualizerApp::drawMovies() {
         }
     }
 }
+*/
 
 CINDER_APP_BASIC( AudioVisualizerApp, RendererGl );
