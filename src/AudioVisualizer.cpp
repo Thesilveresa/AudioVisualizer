@@ -8,8 +8,7 @@
 #include "cinder/Surface.h"
 #include "cinder/ImageIo.h"
 
-#include "cinder/qtime/QuickTime.h"
-#include "cinder/qtime/QuickTimeUtils.h"
+#include "cinder/video/video.h"
 
 #include "cinder/gl/gl.h"
 #include "cinder/gl/Vbo.h"
@@ -46,11 +45,11 @@ public:
     void            fileInit();
  //   void            openFile();
     void            openFile(GLint which);
- //   void            loadMovieFile(qtime::MovieGl &mMovie, const fs::path &moviePath, gl::Texture &mFrameTexture); // enable this function to use video players
+    void            loadMovieFile(video::MovieGl &mMovie, const fs::path &moviePath, gl::Texture &mFrameTexture); // enable this function to use video players
 
     void            update();
 	void            draw();
-// void            drawMovies();
+ void            drawMovies();
     
 #if defined(CINDER_MAC)
     void            drawFft();
@@ -74,10 +73,10 @@ private:
     PcmBuffer32fRef     mPcmBuf_Input;
     shared_ptr<float>   mFftDataRef;
     gl::Texture			mTexture1, mTexture2, mFrameTexture1, mFrameTexture2, mFrameTexture3;
-	//qtime::MovieGl	mMovie1, mMovie2, mMovie3;
+	video::MovieGl	mMovie1, mMovie2, mMovie3;
     
     GLboolean           LOOPS1, LOOPS2, LINES, MESH1, MESH2, SPIN, VMODE1, VMODE2, FFT1, FFT2,
-                        // MOVIES_ON1, MOVIES_ON2, MOVIES_ON3,
+                        MOVIES_ON1, MOVIES_ON2, MOVIES_ON3,
                         MODE4, quad1, quad2, DOME;
     GLfloat             spinX, spinY, spinZ, tiltX, tiltY, tiltZ, angVeloc, mFlash, mAlpha1, mAlpha2,
                         mAlpha3, vAlpha, Yscale1, Yscale2,bandHeight, incr_dec, step1, step2, radius1,
@@ -157,7 +156,6 @@ void AudioVisualizerApp::fileInit()
     
     openFile(1);
   
-   /* Enable this section to use video players
     fs::path mp("/Users/architechnoiste/Desktop/cinder/samples/AudioVisualizer/xcode/vid/1.mov");
     if( ! mp.empty() )
         loadMovieFile( mMovie1, mp, mFrameTexture1);
@@ -169,7 +167,6 @@ void AudioVisualizerApp::fileInit()
     fs::path mp3("/Users/architechnoiste/Desktop/cinder/samples/AudioVisualizer/xcode/vid/3.mov");
     if( ! mp3.empty() )
         loadMovieFile( mMovie3, mp, mFrameTexture3);   
-    */
 }
 
 /*void AudioVisualizerApp::openFile()
@@ -316,12 +313,10 @@ void AudioVisualizerApp::openFile(GLint which)
     default:break;}
 }
 
-/* Enable for video players
-void AudioVisualizerApp::loadMovieFile(qtime::MovieGl &mMovie, const fs::path &moviePath, gl::Texture &mFrameTexture)
+void AudioVisualizerApp::loadMovieFile(video::MovieGl &mMovie, const fs::path &moviePath, gl::Texture &mFrameTexture)
 {
     try {
-        mMovie = qtime::MovieGl( moviePath );
-        qtime::initQTVisualContextOptions(300, 300, true);
+        mMovie = video::MovieGl( moviePath );
         mMovie.setLoop();
         mMovie.setVolume(0);
         mMovie.play();
@@ -332,7 +327,6 @@ void AudioVisualizerApp::loadMovieFile(qtime::MovieGl &mMovie, const fs::path &m
     } 
     mFrameTexture.reset();
 }
-*/
 
 void AudioVisualizerApp::update() {
     if(SPIN) { mRotationQuat.set(Vec3f(spinX, spinY, spinZ), getElapsedSeconds() * angVeloc); }
@@ -345,9 +339,9 @@ void AudioVisualizerApp::update() {
 	mFftDataRef = calculateFft(mPcmBuf_Input->getChannelData(CHANNEL_FRONT_LEFT), nBands);
 #endif
 
- //   if(mMovie1) mFrameTexture1 = mMovie1.getTexture();
- //   if(mMovie2) mFrameTexture2 = mMovie2.getTexture();
- //   if(mMovie3) mFrameTexture3 = mMovie3.getTexture();
+    if(mMovie1) mFrameTexture1 = mMovie1.getTexture();
+    if(mMovie2) mFrameTexture2 = mMovie2.getTexture();
+    if(mMovie3) mFrameTexture3 = mMovie3.getTexture();
 }
 
 void AudioVisualizerApp::draw()
@@ -387,7 +381,7 @@ void AudioVisualizerApp::draw()
             gl::popMatrices();
         }
         gl::color(1.0f, 1.0f, 1.0f, vAlpha);
-  //      drawMovies();
+        drawMovies();
         
     gl::popModelView();
     mScreenSyphon.publishScreen();
@@ -579,13 +573,11 @@ void AudioVisualizerApp::keyDown(KeyEvent event)
         case '4': LOOPS2 ? LOOPS2=false : LOOPS2=true; break;
         case '*': LINES ? LINES=false : LINES=true; break;
        
-     /* Video players
         case '!': MOVIES_ON1 ? MOVIES_ON1=false : MOVIES_ON1=true; break;
         case '@': MOVIES_ON2 ? MOVIES_ON2=false : MOVIES_ON2=true; break;
         case '#': MOVIES_ON3 ? MOVIES_ON3=false : MOVIES_ON3=true; break;
         case '$': { MOVIES_ON1=true; MOVIES_ON2=true; MOVIES_ON3=true; } break;
         case '%': { MOVIES_ON1=false; MOVIES_ON2=false; MOVIES_ON3=false; } break;
-     */
        
     //  Dome map controls
         case 'w': base<=0.0f ? base=0.0f : base-=0.1f; break;
@@ -682,7 +674,6 @@ void AudioVisualizerApp::resize( ResizeEvent event )
 	gl::setMatrices(mCam);
 }
 
-/* Draw video players
 void AudioVisualizerApp::drawMovies() {
     if(mFrameTexture1) {
         if(MOVIES_ON1) {
@@ -789,6 +780,5 @@ void AudioVisualizerApp::drawMovies() {
         }
     }
 }
-*/
 
 CINDER_APP_BASIC( AudioVisualizerApp, RendererGl );
