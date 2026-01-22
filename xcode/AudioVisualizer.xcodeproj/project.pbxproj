@@ -323,11 +323,11 @@
 				GCC_MODEL_TUNING = G5;
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
-					"../../../boost",
+					"$(CINDER_PATH)/boost",
 				);
 				USER_HEADER_SEARCH_PATHS = (
 					"$(inherited)",
-					"../../../include",
+					"$(CINDER_PATH)/include",
 					"../include",
 				);
 				GCC_OPTIMIZATION_LEVEL = 0;
@@ -359,11 +359,11 @@
 				GCC_MODEL_TUNING = G5;
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
-					"../../../boost",
+					"$(CINDER_PATH)/boost",
 				);
 				USER_HEADER_SEARCH_PATHS = (
 					"$(inherited)",
-					"../../../include",
+					"$(CINDER_PATH)/include",
 					"../include",
 				);
 				GCC_OPTIMIZATION_LEVEL = 3;
