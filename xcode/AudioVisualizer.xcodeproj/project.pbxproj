@@ -321,8 +321,15 @@
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_INLINES_ARE_PRIVATE_EXTERN = YES;
 				GCC_MODEL_TUNING = G5;
-				HEADER_SEARCH_PATHS = "$(inherited)";
-				USER_HEADER_SEARCH_PATHS = "$(inherited)";
+				HEADER_SEARCH_PATHS = (
+					"$(inherited)",
+					"../../../boost",
+				);
+				USER_HEADER_SEARCH_PATHS = (
+					"$(inherited)",
+					"../../../include",
+					"../include",
+				);
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = AudioVisualizer_Prefix.pch;
@@ -350,8 +357,15 @@
 				GCC_FAST_MATH = YES;
 				GCC_INLINES_ARE_PRIVATE_EXTERN = YES;
 				GCC_MODEL_TUNING = G5;
-				HEADER_SEARCH_PATHS = "$(inherited)";
-				USER_HEADER_SEARCH_PATHS = "$(inherited)";
+				HEADER_SEARCH_PATHS = (
+					"$(inherited)",
+					"../../../boost",
+				);
+				USER_HEADER_SEARCH_PATHS = (
+					"$(inherited)",
+					"../../../include",
+					"../include",
+				);
 				GCC_OPTIMIZATION_LEVEL = 3;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = AudioVisualizer_Prefix.pch;
