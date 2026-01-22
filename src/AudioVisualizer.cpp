@@ -1,4 +1,4 @@
-#include "cinder/app/AppBasic.h"
+#include "cinder/app/AppNative.h"
 #include "cinder/Cinder.h"
 #include "cinder/Utilities.h"
 #include "cinder/Filesystem.h"
@@ -36,7 +36,7 @@ using namespace ci::app;
 using namespace audio;
 using namespace std;
 
-class AudioVisualizerApp : public AppBasic {
+class AudioVisualizerApp : public AppNative {
 
 public: 
     void            prepareSettings(Settings *s);   
@@ -789,4 +789,4 @@ void AudioVisualizerApp::drawMovies() {
 }
 */
 
-CINDER_APP_BASIC( AudioVisualizerApp, RendererGl );
+CINDER_APP( AudioVisualizerApp, RendererGl );
