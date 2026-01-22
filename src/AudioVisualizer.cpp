@@ -8,8 +8,7 @@
 #include "cinder/Surface.h"
 #include "cinder/ImageIo.h"
 
-#include "cinder/qtime/QuickTime.h"
-#include "cinder/qtime/QuickTimeUtils.h"
+#include "cinder/video/video.h"
 
 #include "cinder/gl/gl.h"
 #include "cinder/gl/Vbo.h"
@@ -46,7 +45,7 @@ public:
     void            fileInit();
  //   void            openFile();
     void            openFile(GLint which);
- //   void            loadMovieFile(qtime::MovieGl &mMovie, const fs::path &moviePath, gl::Texture &mFrameTexture); // enable this function to use video players
+ //   void            loadMovieFile(video::MovieGl &mMovie, const fs::path &moviePath, gl::Texture &mFrameTexture); // enable this function to use video players
 
     void            update();
 	void            draw();
@@ -74,7 +73,7 @@ private:
     PcmBuffer32fRef     mPcmBuf_Input;
     shared_ptr<float>   mFftDataRef;
     gl::Texture			mTexture1, mTexture2, mFrameTexture1, mFrameTexture2, mFrameTexture3;
-	//qtime::MovieGl	mMovie1, mMovie2, mMovie3;
+	//video::MovieGl	mMovie1, mMovie2, mMovie3;
     
     GLboolean           LOOPS1, LOOPS2, LINES, MESH1, MESH2, SPIN, VMODE1, VMODE2, FFT1, FFT2,
                         // MOVIES_ON1, MOVIES_ON2, MOVIES_ON3,
@@ -317,11 +316,10 @@ void AudioVisualizerApp::openFile(GLint which)
 }
 
 /* Enable for video players
-void AudioVisualizerApp::loadMovieFile(qtime::MovieGl &mMovie, const fs::path &moviePath, gl::Texture &mFrameTexture)
+void AudioVisualizerApp::loadMovieFile(video::MovieGl &mMovie, const fs::path &moviePath, gl::Texture &mFrameTexture)
 {
     try {
-        mMovie = qtime::MovieGl( moviePath );
-        qtime::initQTVisualContextOptions(300, 300, true);
+        mMovie = video::MovieGl( moviePath );
         mMovie.setLoop();
         mMovie.setVolume(0);
         mMovie.play();
